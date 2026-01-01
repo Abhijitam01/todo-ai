@@ -1,0 +1,14 @@
+{
+  "name": "@todoai/config",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/nextjs": "./tsconfig/nextjs.json",
+    "./tsconfig/nestjs": "./tsconfig/nestjs.json",
+    "./tsconfig/library": "./tsconfig/library.json",
+    "./eslint/base": "./eslint/base.js",
+    "./tailwind": "./tailwind/base.config.ts"
+  }
+}
+
