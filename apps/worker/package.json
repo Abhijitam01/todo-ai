@@ -1,0 +1,30 @@
+{
+  "name": "@todoai/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@todoai/ai": "workspace:*",
+    "@todoai/db": "workspace:*",
+    "@todoai/types": "workspace:*",
+    "bullmq": "^5.25.0",
+    "ioredis": "^5.4.0",
+    "pino": "^9.5.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@todoai/config": "workspace:*",
+    "@types/node": "^20.17.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
+
