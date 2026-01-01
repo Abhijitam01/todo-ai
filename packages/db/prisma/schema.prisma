@@ -1,0 +1,386 @@
+// ===========================================
+// TodoAI Prisma Schema
+// ===========================================
+// Production-grade schema designed for 100k+ users
+// with proper indexing, soft deletes, and audit support.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// User & Authentication
+// ===========================================
+
+model User {
+  id                 String    @id @default(uuid()) @db.Uuid
+  email              String    @unique
+  passwordHash       String
+  name               String
+  phoneNumber        String?   @unique
+  
+  // AI Token Budget
+  aiTokenBudget      Int       @default(50000) // Daily budget
+  aiTokensUsedToday  Int       @default(0)
+  tokenResetDate     DateTime  @default(now())
+  
+  // Activity tracking
+  streakDays         Int       @default(0)
+  longestStreak      Int       @default(0)
+  lastActiveAt       DateTime?
+  
+  // Soft delete
+  deletedAt          DateTime?
+  
+  // Timestamps
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  preferences        UserPreference?
+  goals              Goal[]
+  taskInstances      TaskInstance[]
+  aiInteractions     AIInteraction[]
+  notifications      Notification[]
+  refreshTokens      RefreshToken[]
+  streakHistory      UserStreak[]
+  auditLogs          AuditLog[]
+
+  @@index([email])
+  @@index([lastActiveAt])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model UserPreference {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @unique @db.Uuid
+  
+  timezone             String   @default("UTC")
+  dailyReminderTime    String   @default("09:00") // HH:mm format
+  weekStartsOn         String   @default("monday") // sunday | monday
+  notificationsEnabled Boolean  @default(true)
+  emailNotifications   Boolean  @default(true)
+  pushNotifications    Boolean  @default(false)
+  theme                String   @default("system") // light | dark | system
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  token     String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ===========================================
+// Goals & Plans
+// ===========================================
+
+model Goal {
+  id                 String     @id @default(uuid()) @db.Uuid
+  userId             String     @db.Uuid
+  
+  title              String
+  description        String?
+  category           String     @default("other") // health, fitness, learning, etc.
+  status             String     @default("draft") // draft, planning, active, paused, completed, abandoned
+  
+  targetDate         DateTime?
+  durationDays       Int?
+  progressPercentage Float      @default(0) @db.DoublePrecision
+  
+  // Soft delete
+  deletedAt          DateTime?
+  
+  // Timestamps
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  // Relations
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plans              Plan[]
+  tasks              Task[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("goals")
+}
+
+model Plan {
+  id                    String          @id @default(uuid()) @db.Uuid
+  goalId                String          @db.Uuid
+  
+  version               Int             @default(1)
+  summary               String
+  approach              String          @db.Text
+  estimatedDurationDays Int
+  difficultyLevel       String          // beginner, intermediate, advanced
+  weeklyHoursMin        Float           @db.DoublePrecision
+  weeklyHoursMax        Float           @db.DoublePrecision
+  
+  // AI metadata
+  promptVersion         String
+  aiProvider            String
+  
+  // Timestamps
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  // Relations
+  goal                  Goal            @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  milestones            PlanMilestone[]
+  aiOutput              AIOutput?
+
+  @@unique([goalId, version])
+  @@index([goalId])
+  @@map("plans")
+}
+
+model PlanMilestone {
+  id            String    @id @default(uuid()) @db.Uuid
+  planId        String    @db.Uuid
+  
+  title         String
+  description   String?   @db.Text
+  order         Int
+  targetWeek    Int
+  status        String    @default("pending") // pending, in_progress, completed, skipped
+  keyActivities String[]  // Array of activity descriptions
+  
+  completedAt   DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  plan          Plan      @relation(fields: [planId], references: [id], onDelete: Cascade)
+  tasks         Task[]
+
+  @@index([planId])
+  @@index([status])
+  @@map("plan_milestones")
+}
+
+// ===========================================
+// Tasks & Task Instances
+// ===========================================
+
+model Task {
+  id               String         @id @default(uuid()) @db.Uuid
+  goalId           String         @db.Uuid
+  milestoneId      String?        @db.Uuid
+  
+  title            String
+  description      String?        @db.Text
+  reasoning        String?        @db.Text // AI explanation of why this task exists
+  
+  priority         String         @default("medium") // low, medium, high, critical
+  frequency        String         @default("daily") // daily, weekdays, weekends, weekly, custom
+  customDays       Int[]          // 0-6 for custom frequency (0 = Sunday)
+  estimatedMinutes Int            @default(30)
+  
+  status           String         @default("active") // active, paused, completed, archived
+  order            Int            @default(0)
+  
+  // Soft delete
+  deletedAt        DateTime?
+  
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // Relations
+  goal             Goal           @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  milestone        PlanMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  instances        TaskInstance[]
+
+  @@index([goalId])
+  @@index([milestoneId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("tasks")
+}
+
+model TaskInstance {
+  id             String    @id @default(uuid()) @db.Uuid
+  taskId         String    @db.Uuid
+  userId         String    @db.Uuid
+  
+  scheduledDate  DateTime  @db.Date
+  status         String    @default("pending") // pending, in_progress, completed, skipped, missed
+  
+  startedAt      DateTime?
+  completedAt    DateTime?
+  actualMinutes  Int?
+  notes          String?   @db.Text
+  
+  // AI evaluation
+  qualityRating  Int?      // 1-5
+  aiEvaluation   String?   @db.Text
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  task           Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, scheduledDate])
+  @@index([userId, scheduledDate])
+  @@index([status])
+  @@index([scheduledDate])
+  @@map("task_instances")
+}
+
+// ===========================================
+// AI System
+// ===========================================
+
+model AIInteraction {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @db.Uuid
+  
+  role          String    // planner, mentor, evaluator
+  provider      String    // gemini, openai, claude
+  promptVersion String
+  
+  status        String    @default("pending") // pending, processing, completed, failed, retrying
+  inputTokens   Int       @default(0)
+  outputTokens  Int       @default(0)
+  latencyMs     Int?
+  
+  errorMessage  String?   @db.Text
+  retryCount    Int       @default(0)
+  
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outputs       AIOutput[]
+
+  @@index([userId])
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+  @@map("ai_interactions")
+}
+
+model AIOutput {
+  id               String        @id @default(uuid()) @db.Uuid
+  interactionId    String        @db.Uuid
+  planId           String?       @unique @db.Uuid
+  
+  outputType       String        // plan, tasks, feedback, evaluation
+  rawOutput        String        @db.Text
+  validatedOutput  Json
+  validationErrors String[]
+  
+  createdAt        DateTime      @default(now())
+
+  // Relations
+  interaction      AIInteraction @relation(fields: [interactionId], references: [id], onDelete: Cascade)
+  plan             Plan?         @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([interactionId])
+  @@index([outputType])
+  @@map("ai_outputs")
+}
+
+// ===========================================
+// Notifications
+// ===========================================
+
+model Notification {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  
+  type      String    // task_reminder, daily_summary, streak_milestone, plan_ready, mentor_message, goal_completed, system
+  channel   String    // in_app, email, push
+  title     String
+  body      String    @db.Text
+  data      Json?
+  
+  status    String    @default("pending") // pending, sent, read, failed
+  readAt    DateTime?
+  sentAt    DateTime?
+  
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([type])
+  @@map("notifications")
+}
+
+// ===========================================
+// Analytics & Audit
+// ===========================================
+
+model UserStreak {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  
+  date          DateTime @db.Date
+  tasksCompleted Int     @default(0)
+  tasksTotal    Int      @default(0)
+  streakDay     Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("user_streaks")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
+  
+  action     String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
+  resource   String   // goal, task, plan, etc.
+  resourceId String?  @db.Uuid
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
