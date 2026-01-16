@@ -34,6 +34,86 @@ services:
       timeout: 5s
       retries: 5
 
+  # Application Services
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: todoai-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://todoai:todoai_dev_password@postgres:5432/todoai?schema=public
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-your-super-secret-refresh-key-change-in-production}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - API_PORT=3001
+      - CORS_ORIGINS=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/v1/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - full
+      - production
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: todoai-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL:-ws://localhost:3001}
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - full
+      - production
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: todoai-worker
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://todoai:todoai_dev_password@postgres:5432/todoai?schema=public
+      - REDIS_URL=redis://redis:6379
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    profiles:
+      - full
+      - production
+
   # Optional: Redis Commander for debugging
   redis-commander:
     image: rediscommander/redis-commander:latest
@@ -47,6 +127,7 @@ services:
       - redis
     profiles:
       - debug
+      - full
 
 volumes:
   postgres_data:
