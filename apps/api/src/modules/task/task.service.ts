@@ -57,6 +57,105 @@ export class TaskService {
     }));
   }
 
+  async getCalendarTasks(userId: string, startDate?: string, endDate?: string) {
+    // Default to current month if not specified
+    const start = startDate ? new Date(startDate) : new Date();
+    if (!startDate) {
+      start.setDate(1); // First day of month
+    }
+    start.setHours(0, 0, 0, 0);
+
+    const end = endDate ? new Date(endDate) : new Date(start);
+    if (!endDate) {
+      end.setMonth(end.getMonth() + 1); // Next month
+      end.setDate(0); // Last day of current month
+    }
+    end.setHours(23, 59, 59, 999);
+
+    const [taskInstances, goals] = await Promise.all([
+      // Get task instances for date range
+      this.prisma.taskInstance.findMany({
+        where: {
+          userId,
+          scheduledDate: {
+            gte: start,
+            lte: end,
+          },
+        },
+        include: {
+          task: {
+            include: {
+              goal: {
+                select: { id: true, title: true, category: true, status: true },
+              },
+              milestone: {
+                select: { title: true, targetWeek: true },
+              },
+            },
+          },
+        },
+        orderBy: { scheduledDate: 'asc' },
+      }),
+      // Get goals with their target dates
+      this.prisma.goal.findMany({
+        where: {
+          userId,
+          deletedAt: null,
+          OR: [
+            {
+              targetDate: {
+                gte: start,
+                lte: end,
+              },
+            },
+            {
+              status: 'active',
+            },
+          ],
+        },
+        select: {
+          id: true,
+          title: true,
+          category: true,
+          status: true,
+          targetDate: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    return {
+      taskInstances: taskInstances.map(instance => ({
+        id: instance.id,
+        date: instance.scheduledDate,
+        title: instance.task.title,
+        status: instance.status,
+        priority: instance.task.priority,
+        estimatedMinutes: instance.task.estimatedMinutes,
+        goal: {
+          id: instance.task.goal.id,
+          title: instance.task.goal.title,
+          category: instance.task.goal.category,
+          status: instance.task.goal.status,
+        },
+        milestone: instance.task.milestone
+          ? {
+              title: instance.task.milestone.title,
+              targetWeek: instance.task.milestone.targetWeek,
+            }
+          : null,
+      })),
+      goals: goals.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        category: goal.category,
+        status: goal.status,
+        targetDate: goal.targetDate,
+        startDate: goal.createdAt,
+      })),
+    };
+  }
+
   async startTask(userId: string, instanceId: string) {
     await this.findUserInstance(userId, instanceId);
 

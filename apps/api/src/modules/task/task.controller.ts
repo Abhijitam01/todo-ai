@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { completeTaskInstanceSchema } from '@todoai/types';
 
@@ -22,6 +23,15 @@ export class TaskController {
   @Get('today')
   async getTodayTasks(@CurrentUser('sub') userId: string) {
     return this.taskService.getTodayTasks(userId);
+  }
+
+  @Get('calendar')
+  async getCalendarTasks(
+    @CurrentUser('sub') userId: string,
+    @Query('start') startDate?: string,
+    @Query('end') endDate?: string
+  ) {
+    return this.taskService.getCalendarTasks(userId, startDate, endDate);
   }
 
   @Post(':id/start')
