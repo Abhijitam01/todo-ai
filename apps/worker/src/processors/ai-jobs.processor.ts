@@ -1,4 +1,4 @@
-import { PlannerService, MentorService, EvaluatorService } from '@todoai/ai';
+import { PlannerService, MentorService, EvaluatorService, TaskGeneratorService } from '@todoai/ai';
 import { prisma } from '@todoai/db';
 import { Worker, Job } from 'bullmq';
 import type { Logger } from 'pino';
@@ -37,11 +37,13 @@ export class AIJobsProcessor {
   private plannerService: PlannerService;
   private mentorService: MentorService;
   private evaluatorService: EvaluatorService;
+  private taskGeneratorService: TaskGeneratorService;
 
   constructor(private readonly logger: Logger) {
     this.plannerService = new PlannerService('gemini');
     this.mentorService = new MentorService('gemini');
     this.evaluatorService = new EvaluatorService('gemini');
+    this.taskGeneratorService = new TaskGeneratorService('gemini');
   }
 
   async start() {
@@ -249,13 +251,135 @@ export class AIJobsProcessor {
   private async handleGenerateDailyTasks(job: Job<GenerateDailyTasksJobData>) {
     const { userId, goalId, date } = job.data;
 
-    // TODO: Implement daily task generation
-    // 1. Get current milestone
-    // 2. Get user's recent task completion rate
-    // 3. Generate appropriate tasks for the day
-    // 4. Create task instances
+    try {
+      this.logger.info({ userId, goalId, date }, 'Starting daily task generation');
 
-    this.logger.info({ userId, goalId, date }, 'Daily tasks generation not yet implemented');
+      // 1. Get goal and current plan
+      const goal = await prisma.goal.findUnique({
+        where: { id: goalId },
+        include: {
+          plans: {
+            orderBy: { version: 'desc' },
+            take: 1,
+            include: {
+              milestones: {
+                orderBy: { order: 'asc' },
+              },
+            },
+          },
+        },
+      });
+
+      if (!goal || goal.plans.length === 0) {
+        throw new Error('Goal or plan not found');
+      }
+
+      const plan = goal.plans[0];
+      const dateObj = new Date(date);
+      const goalStartDate = goal.createdAt;
+      const daysSinceStart = Math.floor(
+        (dateObj.getTime() - goalStartDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const currentWeek = Math.floor(daysSinceStart / 7) + 1;
+
+      // 2. Get current or next milestone
+      let currentMilestone = plan.milestones.find(m => m.targetWeek === currentWeek);
+      if (!currentMilestone) {
+        // Find the closest future milestone or use the last one
+        currentMilestone = plan.milestones.find(m => m.targetWeek > currentWeek) || 
+          plan.milestones[plan.milestones.length - 1];
+      }
+
+      if (!currentMilestone) {
+        throw new Error('No milestone found for current week');
+      }
+
+      // 3. Get user's recent task completion rate (last 7 days)
+      const sevenDaysAgo = new Date(dateObj);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const recentTasks = await prisma.taskInstance.findMany({
+        where: {
+          userId,
+          scheduledFor: {
+            gte: sevenDaysAgo,
+            lt: dateObj,
+          },
+        },
+      });
+
+      const completedTasks = recentTasks.filter(t => t.status === 'completed').length;
+      const completionRate = recentTasks.length > 0 
+        ? (completedTasks / recentTasks.length) * 100 
+        : 70; // Default to 70% if no history
+
+      // 4. Get user's current streak
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { streakDays: true },
+      });
+
+      // 5. Generate tasks using AI
+      const response = await this.taskGeneratorService.generateDailyTasks({
+        goalTitle: goal.title,
+        milestone: {
+          title: currentMilestone.title,
+          description: currentMilestone.description ?? undefined,
+          targetWeek: currentMilestone.targetWeek,
+          keyActivities: currentMilestone.keyActivities,
+        },
+        userProgress: {
+          dayOfPlan: daysSinceStart + 1,
+          completionRate,
+          streakDays: user?.streakDays ?? 0,
+        },
+        date: dateObj,
+      });
+
+      // 6. Create Task and TaskInstance records
+      const createdInstances = [];
+      for (const aiTask of response.tasks) {
+        // Create or find the Task template
+        const task = await prisma.task.create({
+          data: {
+            goalId,
+            milestoneId: currentMilestone.id,
+            title: aiTask.title,
+            description: aiTask.description,
+            reasoning: aiTask.reasoning,
+            priority: aiTask.priority,
+            estimatedMinutes: aiTask.estimatedMinutes,
+            frequency: 'daily', // Generated tasks are typically daily
+            status: 'active',
+          },
+        });
+
+        // Create TaskInstance for the specific date
+        const instance = await prisma.taskInstance.create({
+          data: {
+            userId,
+            taskId: task.id,
+            scheduledFor: dateObj,
+            status: 'pending',
+          },
+        });
+
+        createdInstances.push(instance);
+      }
+
+      this.logger.info(
+        { userId, goalId, date, taskCount: createdInstances.length },
+        'Daily tasks generated successfully'
+      );
+
+      // 7. Emit WebSocket event (if WebSocket service is available)
+      // TODO: Integrate with WebSocket service to notify user
+
+      return { success: true, taskCount: createdInstances.length };
+    } catch (error) {
+      this.logger.error({ userId, goalId, date, err: error }, 'Failed to generate daily tasks');
+      throw error;
+    }
   }
 
   private async handleMentorFeedback(job: Job<MentorFeedbackJobData>) {

@@ -1,5 +1,5 @@
 import { prisma } from '@todoai/db';
-import { Worker, Job } from 'bullmq';
+import { Worker, Job, Queue } from 'bullmq';
 import type { Logger } from 'pino';
 
 import { redisConnection } from '../queues.js';
@@ -13,12 +13,27 @@ interface AggregateStreaksJobData {
   date?: string;
 }
 
-type MaintenanceJobData = CleanupJobData | AggregateStreaksJobData;
+interface GenerateDailyTasksForAllJobData {
+  date?: string;
+}
+
+interface GenerateWeeklyMentorFeedbackJobData {
+  // Empty - will find all active goals
+}
+
+type MaintenanceJobData = 
+  | CleanupJobData 
+  | AggregateStreaksJobData 
+  | GenerateDailyTasksForAllJobData
+  | GenerateWeeklyMentorFeedbackJobData;
 
 export class MaintenanceProcessor {
   private worker: Worker | null = null;
+  private aiJobsQueue: Queue;
 
-  constructor(private readonly logger: Logger) {}
+  constructor(private readonly logger: Logger) {
+    this.aiJobsQueue = new Queue('ai-jobs', { connection: redisConnection });
+  }
 
   async start() {
     // Try to connect to Redis if not already connected
@@ -67,6 +82,12 @@ export class MaintenanceProcessor {
               break;
             case 'markMissedTasks':
               await this.handleMarkMissedTasks();
+              break;
+            case 'generateDailyTasksForAll':
+              await this.handleGenerateDailyTasksForAll(job as Job<GenerateDailyTasksForAllJobData>);
+              break;
+            case 'generateWeeklyMentorFeedback':
+              await this.handleGenerateWeeklyMentorFeedback(job as Job<GenerateWeeklyMentorFeedbackJobData>);
               break;
             default:
               this.logger.warn({ jobName: job.name }, 'Unknown maintenance job');
@@ -211,6 +232,116 @@ export class MaintenanceProcessor {
     });
 
     this.logger.info({ count: result.count }, 'Marked missed tasks');
+  }
+
+  private async handleGenerateDailyTasksForAll(job: Job<GenerateDailyTasksForAllJobData>) {
+    const targetDate = job.data.date ? new Date(job.data.date) : new Date();
+    targetDate.setHours(0, 0, 0, 0);
+    const dateStr = targetDate.toISOString().split('T')[0];
+
+    // Find all active goals
+    const activeGoals = await prisma.goal.findMany({
+      where: {
+        status: 'active',
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    this.logger.info({ count: activeGoals.length, date: dateStr }, 'Queueing daily task generation for all active goals');
+
+    // Queue task generation for each active goal
+    const jobs = [];
+    for (const goal of activeGoals) {
+      const jobPromise = this.aiJobsQueue.add(
+        'generateDailyTasks',
+        {
+          userId: goal.userId,
+          goalId: goal.id,
+          date: dateStr ?? '',
+        },
+        {
+          priority: 2,
+          jobId: `tasks-${goal.id}-${dateStr}`,
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 5000,
+          },
+        }
+      );
+      jobs.push(jobPromise);
+    }
+
+    await Promise.all(jobs);
+
+    this.logger.info({ count: jobs.length, date: dateStr }, 'Successfully queued daily task generation jobs');
+  }
+
+  private async handleGenerateWeeklyMentorFeedback(job: Job<GenerateWeeklyMentorFeedbackJobData>) {
+    // Find all active goals that have had activity in the last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const activeGoalsWithActivity = await prisma.goal.findMany({
+      where: {
+        status: 'active',
+        deletedAt: null,
+        tasks: {
+          some: {
+            instances: {
+              some: {
+                scheduledFor: {
+                  gte: sevenDaysAgo,
+                },
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        title: true,
+      },
+    });
+
+    this.logger.info(
+      { count: activeGoalsWithActivity.length },
+      'Queueing weekly mentor feedback for active goals'
+    );
+
+    // Queue mentor feedback for each active goal
+    const jobs = [];
+    for (const goal of activeGoalsWithActivity) {
+      const jobPromise = this.aiJobsQueue.add(
+        'mentorFeedback',
+        {
+          userId: goal.userId,
+          goalId: goal.id,
+        },
+        {
+          priority: 3,
+          jobId: `mentor-${goal.id}-${Date.now()}`,
+          attempts: 2,
+          backoff: {
+            type: 'exponential',
+            delay: 10000,
+          },
+        }
+      );
+      jobs.push(jobPromise);
+    }
+
+    await Promise.all(jobs);
+
+    this.logger.info(
+      { count: jobs.length },
+      'Successfully queued weekly mentor feedback jobs'
+    );
   }
 }
 
