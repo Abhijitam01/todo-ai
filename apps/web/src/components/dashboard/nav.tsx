@@ -15,6 +15,7 @@ const navItems = [
   { href: '/dashboard' as Route, label: 'Dashboard', icon: Home },
   { href: '/today' as Route, label: 'Today', icon: Calendar },
   { href: '/goals' as Route, label: 'Goals', icon: Target },
+  { href: '/calendar' as Route, label: 'Calendar', icon: Calendar },
 ];
 
 export function DashboardNav() {
