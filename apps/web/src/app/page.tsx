@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import type { Route } from 'next';
 
 import { Button } from '@todoai/ui';
 
@@ -103,10 +106,10 @@ export default function HomePage() {
               © 2024 TodoAI. Built for achievers.
             </p>
             <div className="flex gap-6">
-              <Link href="/privacy" className="text-sm text-slate-400 hover:text-white">
+              <Link href={"/privacy" as Route} className="text-sm text-slate-400 hover:text-white">
                 Privacy
               </Link>
-              <Link href="/terms" className="text-sm text-slate-400 hover:text-white">
+              <Link href={"/terms" as Route} className="text-sm text-slate-400 hover:text-white">
                 Terms
               </Link>
             </div>

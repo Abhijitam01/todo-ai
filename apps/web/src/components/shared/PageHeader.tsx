@@ -28,11 +28,7 @@ export function PageHeader({
         )}
       </div>
       {action && (
-        <Button
-          onClick={action.onClick}
-          href={action.href}
-          asChild={!!action.href}
-        >
+        <Button onClick={action.onClick}>
           {action.label}
         </Button>
       )}

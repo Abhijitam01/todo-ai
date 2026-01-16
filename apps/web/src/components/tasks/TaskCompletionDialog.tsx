@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
   Input,
-  Label,
 } from '@todoai/ui';
 import type { TodayTask } from '@todoai/types';
 
@@ -54,10 +53,7 @@ export function TaskCompletionDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <FormField
-            label="Actual time spent (minutes)"
-            description={`Estimated: ${task.task.estimatedMinutes} minutes`}
-          >
+          <FormField label="Actual time spent (minutes)">
             <Input
               type="number"
               placeholder={task.task.estimatedMinutes?.toString()}
@@ -65,6 +61,9 @@ export function TaskCompletionDialog({
               onChange={(e) => setActualMinutes(e.target.value)}
               className="bg-slate-900 border-slate-700 text-white"
             />
+            <p className="text-sm text-slate-400 mt-1">
+              Estimated: {task.task.estimatedMinutes} minutes
+            </p>
           </FormField>
           <FormField label="Notes (optional)">
             <Input

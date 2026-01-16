@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import * as React from 'react';
 
-import { Badge, Button, Card, CardContent, Progress } from '@todoai/ui';
+import { Card, CardContent, Progress } from '@todoai/ui';
 import type { Goal } from '@todoai/types';
 
 import { GoalStatusBadge } from './GoalStatusBadge';

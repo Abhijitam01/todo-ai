@@ -1,9 +1,13 @@
+'use client';
+
 import * as React from 'react';
-import {
-  Controller,
+import type {
   ControllerProps,
   FieldPath,
   FieldValues,
+} from 'react-hook-form';
+import {
+  Controller,
   FormProvider,
   useFormContext,
 } from 'react-hook-form';
@@ -11,6 +15,7 @@ import {
 import { cn } from '../utils';
 import { Label } from './label';
 
+// FormProvider is exported from react-hook-form, use it directly
 const Form = FormProvider;
 
 type FormFieldContextValue<

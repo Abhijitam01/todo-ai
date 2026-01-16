@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@todoai/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@todoai/ui';
 import type { PlanWithMilestones } from '@todoai/types';
 
 export interface PlanViewProps {

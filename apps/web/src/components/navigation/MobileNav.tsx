@@ -1,7 +1,8 @@
 'use client';
 
-import { Home, Calendar, Target, X } from 'lucide-react';
+import { Home, Calendar, Target } from 'lucide-react';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
@@ -10,14 +11,14 @@ import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } fr
 export interface MobileNavProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  navItems?: Array<{ href: string; label: string; icon: React.ComponentType<{ className?: string }> }>;
+  navItems?: Array<{ href: Route; label: string; icon: React.ComponentType<{ className?: string }> }>;
   className?: string;
 }
 
 const defaultNavItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/today', label: 'Today', icon: Calendar },
-  { href: '/goals', label: 'Goals', icon: Target },
+  { href: '/dashboard' as Route, label: 'Dashboard', icon: Home },
+  { href: '/today' as Route, label: 'Today', icon: Calendar },
+  { href: '/goals' as Route, label: 'Goals', icon: Target },
 ];
 
 export function MobileNav({

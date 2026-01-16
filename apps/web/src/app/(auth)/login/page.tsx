@@ -25,7 +25,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginInput) => {
     try {
-      const response = await api.post('/auth/login', data);
+      const response = await api.post<{ user: { id: string; email: string; name: string }; tokens: { accessToken: string; refreshToken: string; expiresIn: number } }>('/auth/login', data);
       setAuth(response.data.user, response.data.tokens);
       toast({ title: 'Welcome back!', variant: 'success' });
       router.push('/dashboard');

@@ -20,7 +20,6 @@ const statusIcons: Record<MilestoneStatus, React.ReactNode> = {
 
 export function MilestoneCard({
   milestone,
-  isFirst,
   isLast,
   className,
 }: MilestoneCardProps) {

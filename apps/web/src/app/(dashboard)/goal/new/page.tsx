@@ -17,7 +17,7 @@ export default function NewGoalPage() {
   const onSubmit = async (data: CreateGoalInput) => {
     setIsSubmitting(true);
     try {
-      const response = await api.post('/goals', data);
+      const response = await api.post<{ id: string }>('/goals', data);
       toast({
         title: 'Goal created!',
         description: 'AI is now generating your personalized plan...',

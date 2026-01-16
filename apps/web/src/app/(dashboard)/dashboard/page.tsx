@@ -16,14 +16,24 @@ import type { Goal } from '@todoai/types';
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);
 
-  const { data: stats } = useQuery({
+  const { data: stats } = useQuery<{
+    streak: { current: number; longest: number };
+    goals: { total: number; active: number; completed: number };
+    today: { total: number; completed: number; percentage: number };
+    aiUsage: { used: number; budget: number; percentage: number };
+  }>({
     queryKey: ['user-stats'],
-    queryFn: () => api.get('/users/me/stats').then((r) => r.data),
+    queryFn: () => api.get<{
+      streak: { current: number; longest: number };
+      goals: { total: number; active: number; completed: number };
+      today: { total: number; completed: number; percentage: number };
+      aiUsage: { used: number; budget: number; percentage: number };
+    }>('/users/me/stats').then((r) => r.data),
   });
 
-  const { data: goals } = useQuery({
+  const { data: goals } = useQuery<{ data: Goal[] }>({
     queryKey: ['goals', { page: 1, limit: 5 }],
-    queryFn: () => api.get('/goals', { params: { page: 1, limit: 5 } }).then((r) => r.data),
+    queryFn: () => api.get<Goal[]>('/goals', { params: { page: 1, limit: 5 } }).then((r) => ({ data: r.data })),
   });
 
   return (

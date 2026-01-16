@@ -1,7 +1,7 @@
 import { Flame } from 'lucide-react';
 import * as React from 'react';
 
-import { Badge, Card, CardContent } from '@todoai/ui';
+import { Card, CardContent } from '@todoai/ui';
 
 export interface StreakDisplayProps {
   current: number;
@@ -13,7 +13,6 @@ export interface StreakDisplayProps {
 export function StreakDisplay({
   current,
   longest,
-  showCalendar = false,
   className,
 }: StreakDisplayProps) {
   return (

@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { cn } from '../utils';
 
-export interface CalendarProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CalendarProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect'> {
   value?: Date;
   onSelect?: (date: Date) => void;
   disabled?: (date: Date) => boolean;

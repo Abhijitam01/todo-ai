@@ -78,9 +78,9 @@ export function NotificationDropdown({
                     <p className="text-sm font-medium text-white">
                       {notification.title}
                     </p>
-                    {notification.message && (
+                    {notification.body && (
                       <p className="text-xs text-slate-400 mt-1">
-                        {notification.message}
+                        {notification.body}
                       </p>
                     )}
                     <p className="text-xs text-slate-500 mt-1">

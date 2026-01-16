@@ -25,7 +25,7 @@ export default function SignupPage() {
 
   const onSubmit = async (data: CreateUserInput) => {
     try {
-      const response = await api.post('/auth/register', data);
+      const response = await api.post<{ user: { id: string; email: string; name: string }; tokens: { accessToken: string; refreshToken: string; expiresIn: number } }>('/auth/register', data);
       setAuth(response.data.user, response.data.tokens);
       toast({ title: 'Welcome to TodoAI!', variant: 'success' });
       router.push('/dashboard');

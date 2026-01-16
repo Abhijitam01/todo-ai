@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Card, CardContent, Spinner } from '@todoai/ui';
+import { Spinner } from '@todoai/ui';
 
 export interface LoadingStateProps {
   message?: string;

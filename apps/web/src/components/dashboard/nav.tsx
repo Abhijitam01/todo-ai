@@ -2,6 +2,7 @@
 
 import { Bell, Home, LogOut, Settings, Target, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { Button, Badge } from '@todoai/ui';
@@ -11,9 +12,9 @@ import { useAuthStore } from '@/stores/auth.store';
 import { api } from '@/lib/api';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/today', label: 'Today', icon: Calendar },
-  { href: '/goals', label: 'Goals', icon: Target },
+  { href: '/dashboard' as Route, label: 'Dashboard', icon: Home },
+  { href: '/today' as Route, label: 'Today', icon: Calendar },
+  { href: '/goals' as Route, label: 'Goals', icon: Target },
 ];
 
 export function DashboardNav() {
@@ -37,7 +38,7 @@ export function DashboardNav() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href={"/dashboard" as Route} className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-white font-bold">T</span>
             </div>
@@ -81,7 +82,7 @@ export function DashboardNav() {
             </Button>
 
             {/* Settings */}
-            <Link href="/settings">
+            <Link href={"/settings" as Route}>
               <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
                 <Settings className="h-5 w-5" />
               </Button>

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
-import { Badge, Button, Card, CardContent, toast } from '@todoai/ui';
+import { toast } from '@todoai/ui';
 import type { TodayTask } from '@todoai/types';
 
 import { api } from '@/lib/api';
@@ -13,8 +13,6 @@ import { PageHeader, LoadingState, ErrorState } from '@/components/shared';
 export default function TodayPage() {
   const queryClient = useQueryClient();
   const [completingTask, setCompletingTask] = useState<TodayTask | null>(null);
-  const [actualMinutes, setActualMinutes] = useState('');
-  const [notes, setNotes] = useState('');
 
   const { data: tasks, isLoading, error } = useQuery({
     queryKey: ['today-tasks'],
@@ -36,8 +34,6 @@ export default function TodayPage() {
       queryClient.invalidateQueries({ queryKey: ['today-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['user-stats'] });
       setCompletingTask(null);
-      setActualMinutes('');
-      setNotes('');
       toast({ title: 'Task completed!', variant: 'success' });
     },
   });
@@ -49,22 +45,6 @@ export default function TodayPage() {
       toast({ title: 'Task skipped' });
     },
   });
-
-  const handleComplete = () => {
-    if (!completingTask) return;
-    completeMutation.mutate({
-      taskId: completingTask.id,
-      data: {
-        actualMinutes: actualMinutes ? parseInt(actualMinutes, 10) : undefined,
-        notes: notes || undefined,
-      },
-    });
-  };
-
-  const pendingTasks = tasks?.filter((t) => t.status === 'pending') ?? [];
-  const inProgressTasks = tasks?.filter((t) => t.status === 'in_progress') ?? [];
-  const completedTasks = tasks?.filter((t) => t.status === 'completed') ?? [];
-  const skippedTasks = tasks?.filter((t) => t.status === 'skipped' || t.status === 'missed') ?? [];
 
   if (isLoading) {
     return <LoadingState message="Loading tasks..." />;
@@ -139,8 +119,6 @@ export default function TodayPage() {
           open={!!completingTask}
           onClose={() => {
             setCompletingTask(null);
-            setActualMinutes('');
-            setNotes('');
           }}
           onSubmit={async (data) => {
             await completeMutation.mutateAsync({

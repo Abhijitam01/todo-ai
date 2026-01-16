@@ -3,13 +3,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 
-import { Badge, Card, CardContent, Progress } from '@todoai/ui';
+import { Card, CardContent, Progress } from '@todoai/ui';
 import type { GoalWithPlan, PlanWithMilestones } from '@todoai/types';
 
 import { api } from '@/lib/api';
 import { GoalStatusBadge } from '@/components/goals';
-import { PlanView, MilestoneTimeline, PlanLoadingState } from '@/components/plans';
-import { PageHeader, LoadingState, ErrorState } from '@/components/shared';
+import { MilestoneTimeline, PlanLoadingState, PlanView } from '@/components/plans';
+import { LoadingState, ErrorState } from '@/components/shared';
 
 export default function GoalDetailPage() {
   const params = useParams();
@@ -20,7 +20,7 @@ export default function GoalDetailPage() {
     queryFn: () => api.get<GoalWithPlan>(`/goals/${goalId}`).then((r) => r.data),
   });
 
-  const { data: plan, isLoading: planLoading } = useQuery({
+  const { data: plan } = useQuery({
     queryKey: ['goal-plan', goalId],
     queryFn: () => api.get<PlanWithMilestones>(`/goals/${goalId}/plan`).then((r) => r.data),
     enabled: !!goal && goal.status !== 'planning',
