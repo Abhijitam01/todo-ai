@@ -4,8 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { ArrowRight, Loader2, User, Mail, Phone, Lock, CheckCircle2 } from 'lucide-react';
 
-import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label, toast } from '@todoai/ui';
+import { Button, Input, Label, toast } from '@todoai/ui';
 import { createUserSchema, type CreateUserInput } from '@todoai/types';
 
 import { useAuthStore } from '@/stores/auth.store';
@@ -36,85 +37,166 @@ export default function SignupPage() {
   };
 
   return (
-    <Card className="border-slate-700 bg-slate-800/50">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center text-white">Create an account</CardTitle>
-        <CardDescription className="text-center text-slate-400">
-          Start achieving your goals with AI mentorship
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
+    <div className="space-y-8 animate-fade-in">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold text-white">Create your account</h1>
+        <p className="text-slate-400">Start achieving your goals with AI mentorship</p>
+      </div>
+
+      {/* Benefits */}
+      <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-slate-900/30 border border-slate-800/50">
+        <BenefitItem text="Free forever" />
+        <BenefitItem text="AI mentorship" />
+        <BenefitItem text="No credit card" />
+        <BenefitItem text="Cancel anytime" />
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-slate-200">
+            <Label htmlFor="name" className="text-slate-200 text-sm font-medium">
               Full Name
             </Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="John Doe"
-              className="bg-slate-900 border-slate-700 text-white"
-              {...register('name')}
-            />
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+              <Input
+                id="name"
+                type="text"
+                placeholder="John Doe"
+                className="pl-11 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20 h-12"
+                {...register('name')}
+              />
+            </div>
             {errors.name && (
-              <p className="text-sm text-red-400">{errors.name.message}</p>
+              <p className="text-sm text-red-400 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-red-400" />
+                {errors.name.message}
+              </p>
             )}
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-slate-200">
-              Email
+            <Label htmlFor="email" className="text-slate-200 text-sm font-medium">
+              Email Address
             </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              className="bg-slate-900 border-slate-700 text-white"
-              {...register('email')}
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                className="pl-11 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20 h-12"
+                {...register('email')}
+              />
+            </div>
             {errors.email && (
-              <p className="text-sm text-red-400">{errors.email.message}</p>
+              <p className="text-sm text-red-400 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-red-400" />
+                {errors.email.message}
+              </p>
             )}
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber" className="text-slate-200">
-              Phone Number (optional)
+            <Label htmlFor="phoneNumber" className="text-slate-200 text-sm font-medium">
+              Phone Number <span className="text-slate-500 text-xs">(Optional)</span>
             </Label>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              placeholder="+1 (555) 123-4567"
-              className="bg-slate-900 border-slate-700 text-white"
-              {...register('phoneNumber')}
-            />
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="+1 (555) 123-4567"
+                className="pl-11 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20 h-12"
+                {...register('phoneNumber')}
+              />
+            </div>
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-slate-200">
+            <Label htmlFor="password" className="text-slate-200 text-sm font-medium">
               Password
             </Label>
-            <Input
-              id="password"
-              type="password"
-              className="bg-slate-900 border-slate-700 text-white"
-              {...register('password')}
-            />
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                className="pl-11 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20 h-12"
+                {...register('password')}
+              />
+            </div>
             {errors.password && (
-              <p className="text-sm text-red-400">{errors.password.message}</p>
+              <p className="text-sm text-red-400 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-red-400" />
+                {errors.password.message}
+              </p>
             )}
+            <p className="text-xs text-slate-500">
+              Must be at least 8 characters with a mix of letters and numbers
+            </p>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating account...' : 'Create Account'}
+        </div>
+
+        <Button 
+          type="submit" 
+          className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium shadow-lg shadow-cyan-500/25 transition-all" 
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            <>
+              Create Account
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-800" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-slate-950 text-slate-500">Already have an account?</span>
+          </div>
+        </div>
+
+        <Link href="/login" className="block">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full h-12 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 hover:bg-slate-900/50 transition-all"
+          >
+            Sign in instead
           </Button>
-          <p className="text-sm text-center text-slate-400">
-            Already have an account?{' '}
-            <Link href="/login" className="text-primary hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
+        </Link>
       </form>
-    </Card>
+
+      <p className="text-center text-sm text-slate-500">
+        By creating an account, you agree to our{' '}
+        <Link href="/terms" className="text-slate-400 hover:text-white transition">
+          Terms
+        </Link>
+        {' '}and{' '}
+        <Link href="/privacy" className="text-slate-400 hover:text-white transition">
+          Privacy Policy
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+function BenefitItem({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+      <span className="text-sm text-slate-300">{text}</span>
+    </div>
   );
 }
 
