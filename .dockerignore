@@ -1,16 +1,58 @@
-node_modules
-.next
-dist
-.git
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Environment files
 .env
 .env.local
-*.log
+.env.*.local
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-coverage
-.vscode
-.idea
-turbo.json
-tsconfig.tsbuildinfo
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Turbo
+.turbo/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
 *.md
 !README.md
 
+# Misc
+.cache/
+tmp/
+temp/
+
+# Docker
+Dockerfile*
+docker-compose*.yml

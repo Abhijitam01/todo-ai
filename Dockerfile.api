@@ -20,18 +20,29 @@ RUN pnpm build --filter @todoai/api
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+
+# Install netcat for health checks
+RUN apk add --no-cache netcat-openbsd
+
 # Copy built API
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 # Copy node_modules (needed for runtime)
 COPY --from=builder /app/node_modules ./node_modules
 # Copy Prisma schema and generated client
 COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
 COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/db/package.json ./packages/db/package.json
 # Copy other built packages
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
+COPY --from=builder /app/packages/types/package.json ./packages/types/package.json
 COPY --from=builder /app/packages/ai/dist ./packages/ai/dist
+COPY --from=builder /app/packages/ai/package.json ./packages/ai/package.json
+# Copy entrypoint script
+COPY scripts/docker-entrypoint-api.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 WORKDIR /app/apps/api
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["/entrypoint.sh"]
 

@@ -46,6 +46,7 @@ packages/db/prisma/*.db-journal
 
 # TypeScript
 *.tsbuildinfo
+tsup.config.bundled_*.mjs
 
 # Misc
 .cache/
