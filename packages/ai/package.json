@@ -21,12 +21,12 @@
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@todoai/types": "workspace:*",
-    "zod": "^3.23.0"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@todoai/config": "workspace:*",
-    "tsup": "^8.3.0",
-    "typescript": "^5.7.0"
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
   }
 }
 

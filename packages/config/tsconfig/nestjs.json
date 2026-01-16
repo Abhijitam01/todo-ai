@@ -6,18 +6,12 @@
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "baseUrl": "./",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "declaration": true,
     "removeComments": true,
     "allowSyntheticDefaultImports": true,
-    "incremental": true,
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "incremental": true
   }
 }
 

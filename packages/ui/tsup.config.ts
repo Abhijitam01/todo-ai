@@ -7,6 +7,6 @@ export default defineConfig({
   clean: true,
   splitting: false,
   sourcemap: true,
-  external: ['react', 'react-dom'],
+  external: ['react', 'react-dom', 'react-hook-form'],
 });
 
