@@ -66,7 +66,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       error: {
         code,
         message,
-        ...(details && { details }),
+        ...(details !== undefined && { details }),
       },
       meta: {
         requestId,

@@ -71,7 +71,7 @@ export class EventsGateway
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('ping')
-  handlePing(@ConnectedSocket() client: Socket) {
+  handlePing() {
     return { event: 'pong', data: { timestamp: new Date().toISOString() } };
   }
 

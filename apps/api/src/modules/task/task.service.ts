@@ -33,7 +33,7 @@ export class TaskService {
       ],
     });
 
-    return instances.map((instance) => ({
+    return instances.map((instance: typeof instances[0]) => ({
       id: instance.id,
       taskId: instance.taskId,
       userId: instance.userId,
@@ -58,7 +58,7 @@ export class TaskService {
   }
 
   async startTask(userId: string, instanceId: string) {
-    const instance = await this.findUserInstance(userId, instanceId);
+    await this.findUserInstance(userId, instanceId);
 
     return this.prisma.taskInstance.update({
       where: { id: instanceId },
@@ -74,7 +74,7 @@ export class TaskService {
     instanceId: string,
     input: CompleteTaskInstanceInput
   ) {
-    const instance = await this.findUserInstance(userId, instanceId);
+    await this.findUserInstance(userId, instanceId);
 
     const updated = await this.prisma.taskInstance.update({
       where: { id: instanceId },

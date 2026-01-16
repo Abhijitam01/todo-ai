@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PrismaClient } from '@todoai/db';
 import type Redis from 'ioredis';
 
-interface HealthStatus {
+export interface HealthStatus {
   status: 'healthy' | 'unhealthy' | 'degraded';
   timestamp: string;
   version: string;
@@ -12,7 +12,7 @@ interface HealthStatus {
   };
 }
 
-interface ServiceStatus {
+export interface ServiceStatus {
   status: 'up' | 'down';
   latencyMs?: number;
   error?: string;

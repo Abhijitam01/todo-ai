@@ -4,6 +4,9 @@
 
 export { prisma, PrismaClient } from './client.js';
 
+// Re-export Prisma namespace for JsonNull, etc.
+export { Prisma } from '@prisma/client';
+
 // Re-export Prisma types
 // Using type inference from PrismaClient to get model types
 import type { PrismaClient } from '@prisma/client';

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PrismaClient } from '@todoai/db';
+import { PrismaClient, Prisma } from '@todoai/db';
 import type { CreateNotificationInput, Notification, NotificationType } from '@todoai/types';
 import type { Queue } from 'bullmq';
 
@@ -18,7 +18,9 @@ export class NotificationService {
         channel: input.channel,
         title: input.title,
         body: input.body,
-        data: input.data ?? null,
+        data: input.data !== null && input.data !== undefined 
+          ? (input.data as Prisma.InputJsonValue) 
+          : Prisma.JsonNull,
       },
     });
 

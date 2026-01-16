@@ -90,9 +90,9 @@ export class UserService {
         percentage: Math.round((user.aiTokensUsedToday / user.aiTokenBudget) * 100),
       },
       goals: {
-        total: goalStats.reduce((acc, g) => acc + g._count, 0),
-        active: goalStats.find((g) => g.status === 'active')?._count ?? 0,
-        completed: goalStats.find((g) => g.status === 'completed')?._count ?? 0,
+        total: goalStats.reduce((acc: number, g: typeof goalStats[0]) => acc + g._count, 0),
+        active: goalStats.find((g: typeof goalStats[0]) => g.status === 'active')?._count ?? 0,
+        completed: goalStats.find((g: typeof goalStats[0]) => g.status === 'completed')?._count ?? 0,
       },
       today: {
         total: todayStats._count,
@@ -132,15 +132,25 @@ export class UserService {
       lastActiveAt: user.lastActiveAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      preferences: user.preferences ?? {
-        timezone: 'UTC',
-        dailyReminderTime: '09:00',
-        weekStartsOn: 'monday',
-        notificationsEnabled: true,
-        emailNotifications: true,
-        pushNotifications: false,
-        theme: 'system',
-      },
+      preferences: user.preferences
+        ? {
+            timezone: user.preferences.timezone,
+            dailyReminderTime: user.preferences.dailyReminderTime,
+            weekStartsOn: user.preferences.weekStartsOn as 'sunday' | 'monday',
+            notificationsEnabled: user.preferences.notificationsEnabled,
+            emailNotifications: user.preferences.emailNotifications,
+            pushNotifications: user.preferences.pushNotifications,
+            theme: user.preferences.theme as 'light' | 'dark' | 'system',
+          }
+        : {
+            timezone: 'UTC',
+            dailyReminderTime: '09:00',
+            weekStartsOn: 'monday' as const,
+            notificationsEnabled: true,
+            emailNotifications: true,
+            pushNotifications: false,
+            theme: 'system' as const,
+          },
     };
   }
 }

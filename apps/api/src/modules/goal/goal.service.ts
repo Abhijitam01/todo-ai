@@ -62,7 +62,7 @@ export class GoalService {
     ]);
 
     return {
-      data: goals.map((g) => this.toGoalWithPlan(g)),
+      data: goals.map((g: typeof goals[0]) => this.toGoalWithPlan(g)),
       pagination: {
         page: options.page,
         limit: options.limit,
