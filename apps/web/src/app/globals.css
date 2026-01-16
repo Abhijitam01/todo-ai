@@ -2,45 +2,163 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+@layer base {
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgb(15 23 42);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgb(51 65 85);
+    border-radius: 8px;
+    border: 2px solid rgb(15 23 42);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(71 85 105);
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 4px;
+@layer utilities {
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  /* Focus visible */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
+  }
+
+  /* Task status indicators */
+  .task-status-pending {
+    @apply border-l-4 border-l-amber-500;
+  }
+
+  .task-status-in-progress {
+    @apply border-l-4 border-l-blue-500;
+  }
+
+  .task-status-completed {
+    @apply border-l-4 border-l-green-500;
+  }
+
+  .task-status-missed {
+    @apply border-l-4 border-l-red-500;
+  }
+
+  /* Glass morphism */
+  .glass {
+    @apply bg-slate-900/50 backdrop-blur-md border border-slate-800/50;
+  }
+
+  .glass-hover {
+    @apply glass hover:bg-slate-900/70 hover:border-slate-700/50 transition-all;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:transform hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/10;
+  }
 }
 
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Focus visible */
-.focus-ring {
-  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Task status indicators */
-.task-status-pending {
-  @apply border-l-4 border-l-amber-500;
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.task-status-in-progress {
-  @apply border-l-4 border-l-blue-500;
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
 }
 
-.task-status-completed {
-  @apply border-l-4 border-l-green-500;
+/* Loading skeleton */
+.skeleton {
+  @apply bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800;
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
 }
 
-.task-status-missed {
-  @apply border-l-4 border-l-red-500;
+/* Smooth transitions for all interactive elements */
+button, a, input, textarea, select {
+  @apply transition-colors duration-200;
+}
+
+/* Better focus indicators for accessibility */
+*:focus-visible {
+  @apply outline-none ring-2 ring-cyan-500 ring-offset-2 ring-offset-slate-950;
 }
 
