@@ -1,6 +1,6 @@
 import type { AIProvider } from '@todoai/types';
 
-import type { AIGenerateResult, AIProviderInterface, GenerateOptions } from './factory';
+import type { AIGenerateResult, AIProviderInterface, GenerateOptions } from './factory.js';
 
 // ===========================================
 // OpenAI Provider (Placeholder)

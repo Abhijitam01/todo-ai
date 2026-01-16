@@ -6,13 +6,13 @@ import {
   aiGeneratedPlanSchema,
 } from '@todoai/types';
 
-import { createAIProvider, type AIProviderInterface } from '../providers/factory';
+import { createAIProvider, type AIProviderInterface } from '../providers/factory.js';
 import {
   buildPlannerPrompt,
   PLANNER_PROMPT_VERSION,
   PLANNER_SYSTEM_PROMPT,
-} from '../prompts/planner.v1';
-import { OutputValidator } from '../utils/output-validator';
+} from '../prompts/planner.v1.js';
+import { OutputValidator } from '../utils/output-validator.js';
 
 // ===========================================
 // Planner Service

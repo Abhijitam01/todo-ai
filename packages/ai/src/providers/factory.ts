@@ -1,8 +1,8 @@
 import type { AIProvider } from '@todoai/types';
 
-import { ClaudeProvider } from './claude';
-import { GeminiProvider } from './gemini';
-import { OpenAIProvider } from './openai';
+import { ClaudeProvider } from './claude.js';
+import { GeminiProvider } from './gemini.js';
+import { OpenAIProvider } from './openai.js';
 
 // ===========================================
 // AI Provider Interface

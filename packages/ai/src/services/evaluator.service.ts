@@ -6,13 +6,13 @@ import {
   evaluationResultSchema,
 } from '@todoai/types';
 
-import { createAIProvider, type AIProviderInterface } from '../providers/factory';
+import { createAIProvider, type AIProviderInterface } from '../providers/factory.js';
 import {
   buildEvaluatorPrompt,
   EVALUATOR_PROMPT_VERSION,
   EVALUATOR_SYSTEM_PROMPT,
-} from '../prompts/evaluator.v1';
-import { OutputValidator } from '../utils/output-validator';
+} from '../prompts/evaluator.v1.js';
+import { OutputValidator } from '../utils/output-validator.js';
 
 // ===========================================
 // Evaluator Service

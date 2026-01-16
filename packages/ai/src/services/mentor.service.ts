@@ -6,13 +6,13 @@ import {
   mentorFeedbackSchema,
 } from '@todoai/types';
 
-import { createAIProvider, type AIProviderInterface } from '../providers/factory';
+import { createAIProvider, type AIProviderInterface } from '../providers/factory.js';
 import {
   buildMentorPrompt,
   MENTOR_PROMPT_VERSION,
   MENTOR_SYSTEM_PROMPT,
-} from '../prompts/mentor.v1';
-import { OutputValidator } from '../utils/output-validator';
+} from '../prompts/mentor.v1.js';
+import { OutputValidator } from '../utils/output-validator.js';
 
 // ===========================================
 // Mentor Service
