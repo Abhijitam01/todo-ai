@@ -21,15 +21,15 @@ const logger = pino({
 async function main() {
   logger.info('Starting TodoAI Worker...');
 
-  // Create queues
-  const { aiJobsQueue, notificationQueue, maintenanceQueue } = createQueues();
+  // Create queues (queues are used by processors via redisConnection)
+  createQueues();
 
   // Initialize processors
   const aiProcessor = new AIJobsProcessor(logger);
   const notificationProcessor = new NotificationProcessor(logger);
   const maintenanceProcessor = new MaintenanceProcessor(logger);
 
-  // Start processors
+  // Start processors (they will handle Redis connection errors gracefully)
   await aiProcessor.start();
   await notificationProcessor.start();
   await maintenanceProcessor.start();

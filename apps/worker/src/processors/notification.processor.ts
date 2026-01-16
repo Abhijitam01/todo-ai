@@ -2,7 +2,7 @@ import { prisma } from '@todoai/db';
 import { Worker, Job } from 'bullmq';
 import type { Logger } from 'pino';
 
-import { redisConnection } from '../queues';
+import { redisConnection } from '../queues.js';
 
 interface SendNotificationJobData {
   notificationId: string;
@@ -15,6 +15,34 @@ export class NotificationProcessor {
   constructor(private readonly logger: Logger) {}
 
   async start() {
+    // Try to connect to Redis if not already connected
+    if (redisConnection.status === 'end' || redisConnection.status === 'wait') {
+      try {
+        await redisConnection.connect();
+      } catch (error) {
+        this.logger.warn(
+          { err: error },
+          'Redis not available, worker will retry when Redis is available'
+        );
+        // Retry connection after a delay (only if not already retrying)
+        if (!this.worker) {
+          setTimeout(() => {
+            if (!this.worker) {
+              this.start().catch((err) => {
+                this.logger.error({ err }, 'Failed to restart worker');
+              });
+            }
+          }, 5000);
+        }
+        return;
+      }
+    }
+
+    // Don't create worker if one already exists
+    if (this.worker) {
+      return;
+    }
+
     this.worker = new Worker<SendNotificationJobData>(
       'notifications',
       async (job) => {

@@ -1,10 +1,9 @@
 import { PlannerService, MentorService, EvaluatorService } from '@todoai/ai';
 import { prisma } from '@todoai/db';
-import { aiGeneratedPlanSchema } from '@todoai/types';
 import { Worker, Job } from 'bullmq';
 import type { Logger } from 'pino';
 
-import { redisConnection } from '../queues';
+import { redisConnection } from '../queues.js';
 
 interface GeneratePlanJobData {
   userId: string;
@@ -46,6 +45,34 @@ export class AIJobsProcessor {
   }
 
   async start() {
+    // Try to connect to Redis if not already connected
+    if (redisConnection.status === 'end' || redisConnection.status === 'wait') {
+      try {
+        await redisConnection.connect();
+      } catch (error) {
+        this.logger.warn(
+          { err: error },
+          'Redis not available, worker will retry when Redis is available'
+        );
+        // Retry connection after a delay (only if not already retrying)
+        if (!this.worker) {
+          setTimeout(() => {
+            if (!this.worker) {
+              this.start().catch((err) => {
+                this.logger.error({ err }, 'Failed to restart worker');
+              });
+            }
+          }, 5000);
+        }
+        return;
+      }
+    }
+
+    // Don't create worker if one already exists
+    if (this.worker) {
+      return;
+    }
+
     this.worker = new Worker<JobData>(
       'ai-jobs',
       async (job) => {
@@ -156,7 +183,7 @@ export class AIJobsProcessor {
           promptVersion: result.promptVersion,
           aiProvider: this.plannerService.getProviderName(),
           milestones: {
-            create: result.plan.milestones.map((m, index) => ({
+            create: result.plan.milestones.map((m: { title: string; description?: string; targetWeek: number; keyActivities: string[] }, index: number) => ({
               title: m.title,
               description: m.description,
               order: index,
@@ -343,6 +370,8 @@ export class AIJobsProcessor {
     // Use quick evaluation for simple cases
     if (!instance.notes && instance.actualMinutes) {
       const quickResult = this.evaluatorService.quickEvaluate({
+        userId,
+        taskInstanceId,
         taskTitle: instance.task.title,
         taskDescription: instance.task.description ?? undefined,
         expectedMinutes: instance.task.estimatedMinutes,
