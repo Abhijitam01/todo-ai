@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 
 import { useAuthStore } from '@/stores/auth.store';
 import { useWebSocket } from '@/hooks/use-websocket';
-import { DashboardNav } from '@/components/dashboard/nav';
+import { Sidebar } from '@/components/navigation';
 
 export default function DashboardLayout({
   children,
@@ -26,8 +26,13 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-slate-800 border-t-cyan-500 rounded-full animate-spin" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -37,10 +42,12 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <DashboardNav />
-      <main className="container mx-auto px-4 py-8">
-        {children}
+    <div className="min-h-screen bg-slate-950">
+      <Sidebar />
+      <main className="ml-64 min-h-screen transition-all duration-300">
+        <div className="container mx-auto px-8 py-8 max-w-7xl">
+          {children}
+        </div>
       </main>
     </div>
   );
