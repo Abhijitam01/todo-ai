@@ -42,15 +42,13 @@ Trudoo AI is an intelligent task management system where users:
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js >= 20.0.0
 - pnpm >= 9.0.0
 - Docker & Docker Compose
 - Gemini API Key ([Get one here](https://makersuite.google.com/app/apikey))
 
-### Option 1: Development Mode (Recommended)
-
-Perfect for local development with hot-reload:
+### Getting Started
+For detailed setup instructions, please refer to the [Development Guide](./docs/DEVELOPMENT.md).
 
 ```bash
 # 1. Clone and install
@@ -62,38 +60,17 @@ pnpm install
 cp env.example .env
 # Edit .env and add your GEMINI_API_KEY
 
-# 3. Start databases only
-docker-compose up -d postgres redis
+# 3. Start databases
+docker-compose up -d
 
 # 4. Setup database
-pnpm db:generate
-pnpm db:push
+pnpm db:generate && pnpm db:push
 
 # 5. Start all services
 pnpm dev
 ```
 
 **Access**: 
-- Web: http://localhost:3000
-- API: http://localhost:3001
-- Prisma Studio: `pnpm db:studio`
-
-### Option 2: Full Docker (Production-like)
-
-Run everything in containers:
-
-```bash
-# 1. Setup environment
-cp env.example .env
-# Edit .env with your API keys
-
-# 2. Start everything
-docker-compose --profile full up -d
-
-# That's it! 🎉
-```
-
-**Access**:
 - Web: http://localhost:3000
 - API: http://localhost:3001
 
@@ -243,93 +220,13 @@ Events:
 
 ---
 
-## 🐳 Docker Deployment
+## 🛠️ Development & Documentation
 
-### Development (Databases Only)
+For more detailed information, please check the following documents in the `docs` folder:
 
-```bash
-# Start just PostgreSQL and Redis
-docker-compose up -d
-
-# Run apps on host
-pnpm dev
-```
-
-**Pros**: Fast hot-reload, easy debugging  
-**Cons**: Need Node.js 20+ installed
-
-### Production (Full Stack)
-
-```bash
-# Build images
-docker-compose --profile full build
-
-# Start all services
-docker-compose --profile full up -d
-
-# View logs
-docker-compose logs -f api worker web
-
-# Stop
-docker-compose --profile full down
-```
-
-**Pros**: Consistent environment, production-like  
-**Cons**: Slower rebuilds
-
-### Profiles
-
-- **Default** (`docker-compose up`): PostgreSQL + Redis only
-- **`--profile full`**: All services (postgres, redis, api, web, worker)
-- **`--profile debug`**: Adds Redis Commander (http://localhost:8081)
-
----
-
-## 🔐 Environment Variables
-
-```env
-# Database
-DATABASE_URL="postgresql://todoai:todoai_dev_password@localhost:5432/todoai"
-
-# Redis
-REDIS_URL="redis://localhost:6379"
-
-# JWT (generate with: openssl rand -base64 32)
-JWT_SECRET="your-super-secret-key"
-JWT_REFRESH_SECRET="your-refresh-secret-key"
-
-# AI Provider (REQUIRED)
-GEMINI_API_KEY="your-gemini-api-key"
-
-# Optional
-OPENAI_API_KEY="your-openai-key"
-ANTHROPIC_API_KEY="your-claude-key"
-```
-
----
-
-## 🛠️ Development Commands
-
-```bash
-# Development
-pnpm dev              # Start all services
-pnpm build            # Build all packages
-pnpm lint             # Lint codebase
-pnpm typecheck        # TypeScript check
-
-# Database
-pnpm db:generate      # Generate Prisma client
-pnpm db:push          # Push schema (dev)
-pnpm db:migrate       # Create migration
-pnpm db:studio        # Open Prisma Studio
-
-# Docker
-docker-compose up -d                    # Start databases
-docker-compose --profile full up -d     # Start everything
-docker-compose logs -f api              # View API logs
-docker-compose down                     # Stop services
-docker-compose down -v                  # Stop + delete data
-```
+- [**Development Guide**](./docs/DEVELOPMENT.md): Detailed setup, troubleshooting, and commands.
+- [**Design System**](./docs/DESIGN.md): UI/UX principles, color palette, and component guide.
+- [**Changelog**](./docs/CHANGELOG.md): History of major updates and redesigns.
 
 ---
 
